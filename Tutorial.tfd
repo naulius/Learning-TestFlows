@@ -1,0 +1,66 @@
+# TestFlows Texts Tutorial
+
+Let's see `testflows.texts` in action by writing auto verified
+documentation for the `-a` option of the `ls` command.
+
+The man page for the `ls` utility says the following:
+
+```
+NAME
+       ls - list directory contents
+
+SYNOPSIS
+       ls [OPTION]... [FILE]...
+
+DESCRIPTION
+       List  information  about  the FILEs (the current directory by default).
+       Sort entries alphabetically if none of -cftuvSUX nor --sort  is  speci‐
+       fied.
+
+       Mandatory  arguments  to  long  options are mandatory for short options
+       too.
+
+       -a, --all
+              do not ignore entries starting with .
+```
+
+Let's see how `-a` option works.
+
+First, create a file that starts with `.` using the `touch` command
+```python:testflows
+from subprocess import run
+
+command = "touch .hidden_file"
+```
+
+```bash
+{command}
+```
+```python:testflows
+run(command, shell=True, check=True)
+# add clean up at the end of our document generation
+cleanup(run, "rm -rf .hidden_file", shell=True, check=True)
+```
+
+Let's now run
+```python:testflows
+
+ls_a_command = "ls -a | grep .hidden_file"
+
+cmd = run(ls_a_command, shell=True, capture_output=True, text=True)
+
+assert cmd.returncode == 0, "returncode {cmd.returncode} is not 0"
+assert ".hidden_file" in cmd.stdout, "hidden file '.hidden_file' in not in the outout"
+```
+
+```bash
+{ls_a_command}
+```
+
+and you should see our `.hidden_file` listed
+
+```bash
+{cmd.stdout.strip()}
+```
+
+Voilà, `ls -a` does indeed show hidden files!
